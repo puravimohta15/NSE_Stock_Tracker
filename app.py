@@ -13,7 +13,7 @@ st.set_page_config(page_title="EMA Crossover Screener", layout="wide")
 # Auto refresh
 st_autorefresh(interval=60000, key="refresh")
 
-st.title("📈 EMA Crossover Screener")
+st.title("📈 Buy or exit stocks trigger")
 
 # Load signals
 df = load_signals()
@@ -33,8 +33,8 @@ filtered_df = df[df["Signal"].isin(signal_filter)]
 col1, col2, col3 = st.columns(3)
 
 col1.metric("Total Signals", len(df))
-col2.metric("Bullish", (df["Signal"] == "Bullish").sum())
-col3.metric("Bearish", (df["Signal"] == "Bearish").sum())
+col2.metric("Buy Signals", (df["Signal"] == "BUY").sum())
+col3.metric("Exit Signals", (df["Signal"] == "EXIT").sum())
 
 st.divider()
 
