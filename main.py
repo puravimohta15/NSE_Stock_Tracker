@@ -17,10 +17,23 @@ if __name__ == "__main__":
     print(signals)
     if not signals.empty:
 
-        message = "📊 EMA Crossover Signals\n\n"
+        bullish = signals[signals["Signal"] == "Bullish"]
+        bearish = signals[signals["Signal"] == "Bearish"]
 
-        for _, row in signals.iterrows():
-            message += f"{row['Stock']} {row['Signal']} crossover | RSI {row['RSI']}\n"
+        # Bullish message
+        if not bullish.empty:
+            bullish_msg = "📈 Bullish EMA Crossovers\n\n"
+            for _, row in bullish.iterrows():
+                bullish_msg += f"{row['Stock']} | RSI {row['RSI']}\n"
 
-        print("Sending alerts:\n", message)
-        send_alert(message)
+            print("Sending bullish alerts:\n", bullish_msg)
+            send_alert(bullish_msg)
+
+        # Bearish message
+        if not bearish.empty:
+            bearish_msg = "📉 Bearish EMA Crossovers\n\n"
+            for _, row in bearish.iterrows():
+                bearish_msg += f"{row['Stock']} | RSI {row['RSI']}\n"
+
+            print("Sending bearish alerts:\n", bearish_msg)
+            send_alert(bearish_msg)
