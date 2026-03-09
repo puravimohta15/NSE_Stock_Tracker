@@ -1,45 +1,95 @@
+
 import streamlit as st
 import pandas as pd
 import yfinance as yf
 import plotly.graph_objects as go
 from streamlit_autorefresh import st_autorefresh
 
+st.set_page_config(page_title="EMA Crossover Screener", layout="wide")
 
-st.title("Stock EMA Crossover Screener")
+# Auto refresh
+st_autorefresh(interval=60000, key="refresh")
 
+st.title("📈 EMA Crossover Screener")
+
+# Load signals
 df = pd.read_csv("data/signals.csv")
 
-st.dataframe(df)
+# Sidebar filters
+st.sidebar.header("Filters")
 
-stock = st.selectbox("Select Stock", df["Stock"])
+signal_filter = st.sidebar.multiselect(
+    "Signal Type",
+    options=df["Signal"].unique(),
+    default=df["Signal"].unique()
+)
 
-data = yf.download(stock, period="6mo")
+filtered_df = df[df["Signal"].isin(signal_filter)]
 
-data["EMA10"] = data["Close"].ewm(span=10).mean()
-data["EMA20"] = data["Close"].ewm(span=20).mean()
+# Metrics row (dashboard style)
+col1, col2, col3 = st.columns(3)
 
-fig = go.Figure()
+col1.metric("Total Signals", len(df))
+col2.metric("Bullish", (df["Signal"] == "Bullish").sum())
+col3.metric("Bearish", (df["Signal"] == "Bearish").sum())
 
-fig.add_trace(go.Candlestick(
-    x=data.index,
-    open=data["Open"],
-    high=data["High"],
-    low=data["Low"],
-    close=data["Close"],
-    name="Price"
-))
+st.divider()
 
-fig.add_trace(go.Scatter(
-    x=data.index,
-    y=data["EMA10"],
-    name="EMA10"
-))
+# Layout split
+left, right = st.columns([1, 2])
 
-fig.add_trace(go.Scatter(
-    x=data.index,
-    y=data["EMA20"],
-    name="EMA20"
-))
+# Left panel: signals table
+with left:
+    st.subheader("Signals")
 
-st_autorefresh(interval=60000, key="refresh")  # refresh every 60 seconds
-st.plotly_chart(fig)
+    st.dataframe(
+        filtered_df,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    stock = st.selectbox("Select Stock", filtered_df["Stock"])
+
+# Right panel: chart
+with right:
+
+    st.subheader(f"{stock} Chart")
+
+    data = yf.download(stock, period="6mo")
+
+    data["EMA10"] = data["Close"].ewm(span=10).mean()
+    data["EMA20"] = data["Close"].ewm(span=20).mean()
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Candlestick(
+        x=data.index,
+        open=data["Open"],
+        high=data["High"],
+        low=data["Low"],
+        close=data["Close"],
+        name="Price"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=data.index,
+        y=data["EMA10"],
+        name="EMA10",
+        line=dict(width=2)
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=data.index,
+        y=data["EMA20"],
+        name="EMA20",
+        line=dict(width=2)
+    ))
+
+    fig.update_layout(
+        height=600,
+        xaxis_rangeslider_visible=False,
+        template="plotly_dark"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
