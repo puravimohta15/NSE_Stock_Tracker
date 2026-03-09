@@ -13,13 +13,13 @@ if __name__ == "__main__":
     market_caps = {}
 
     for i,ticker in enumerate(tickers):
+        if i % 50 == 0:
+            print("Sleeping for 4 seconds to avoid rate limits...")
+            time.sleep(4)
         try:
             ticker_obj = yf.Ticker(ticker)
             market_caps[ticker] = ticker_obj.fast_info.get("marketCap", None)
             print(f"{ticker}: {market_caps[ticker]}")
-            if i % 50 == 0:
-                print("Sleeping for 4 seconds to avoid rate limits...")
-                time.sleep(4)
         except Exception as e:
             print(f"Error fetching {ticker}: {e}")
             market_caps[ticker] = None
