@@ -1,6 +1,12 @@
 from get_tickers import get_nse_tickers
 from scripts.scanner import scan_stocks
 from alerts.telegram_alerts import send_alert
+import pandas as pd
+
+def chunk_dataframe(df, size):
+    for i in range(0, len(df), size):
+        yield df.iloc[i:i + size]
+
 
 if __name__ == "__main__":
     print("Loading tickers...")
@@ -17,23 +23,29 @@ if __name__ == "__main__":
     print(signals)
     if not signals.empty:
 
-        bullish = signals[signals["Signal"] == "Bullish"]
-        bearish = signals[signals["Signal"] == "Bearish"]
+        buy = signals[signals["Signal"] == "BUY"]
+        exit = signals[signals["Signal"] == "EXIT"]
 
-        # Bullish message
-        if not bullish.empty:
-            bullish_msg = "📈 Bullish EMA Crossovers\n\n"
-            for _, row in bullish.iterrows():
-                bullish_msg += f"{row['Stock']} | RSI {row['RSI']}\n"
+        # BUY ALERTS
+        if not buy.empty:
+            for chunk in chunk_dataframe(buy, 90):
 
-            print("Sending bullish alerts:\n", bullish_msg)
-            send_alert(bullish_msg)
+                buy_msg = "📈 BUY TRIGGER\n\n"
 
-        # Bearish message
-        if not bearish.empty:
-            bearish_msg = "📉 Bearish EMA Crossovers\n\n"
-            for _, row in bearish.iterrows():
-                bearish_msg += f"{row['Stock']} | RSI {row['RSI']}\n"
+                for stock, rsi in zip(chunk["Stock"], chunk["RSI"]):
+                    buy_msg += f"{stock} | RSI {rsi}\n"
 
-            print("Sending bearish alerts:\n", bearish_msg)
-            send_alert(bearish_msg)
+                print("Sending buy alerts:\n", buy_msg)
+                send_alert(buy_msg)
+
+        # EXIT ALERTS
+        if not exit.empty:
+            for chunk in chunk_dataframe(exit, 90):
+
+                exit_msg = "📉 EXIT TRIGGER\n\n"
+
+                for stock, rsi in zip(chunk["Stock"], chunk["RSI"]):
+                    exit_msg += f"{stock} | RSI {rsi}\n"
+
+                print("Sending exit alerts:\n", exit_msg)
+                send_alert(exit_msg)
