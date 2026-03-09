@@ -16,6 +16,6 @@ def send_alert(message):
         "text": message
     }
     r = requests.post(url, data=payload)
-    print("Telegram response:", r.json())
+    # print("Telegram response:", r.json())
 
 

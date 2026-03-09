@@ -39,8 +39,8 @@ def process_ticker(ticker, data, market_caps):
 
         df = convert_to_weekly(df)
 
-        if len(df) < 50:
-            return None
+        # if len(df) < 50:
+        #     return None
 
         df = compute_indicators(df)
 
@@ -99,10 +99,10 @@ def process_ticker(ticker, data, market_caps):
 
         exit_signal = (
             drop_from_high
-            or rsi_exit
-            or ema_exit
-            or ema50_exit
-            or bearish_divergence
+            and rsi_exit
+            and ema_exit
+            and ema50_exit
+            and bearish_divergence
         )
 
         if buy_signal:
