@@ -1,0 +1,44 @@
+name: Save MarketCaps
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"   # Runs every Monday at 03:00 UTC
+permissions: 
+  contents: write
+
+jobs:
+  save-marketcaps:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run market cap script
+        run: |
+          python save_marketcaps.py
+
+      - name: Commit updated market caps
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add data/market_caps.csv
+          git commit -m "Weely Update of market caps" || echo "No changes to commit"
+
+      - name: Push changes
+        run: |
+          git push --force origin main 
