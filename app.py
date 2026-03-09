@@ -5,6 +5,9 @@ import yfinance as yf
 import plotly.graph_objects as go
 from streamlit_autorefresh import st_autorefresh
 
+@st.cache_data
+def load_signals():
+    return pd.read_csv("data/signals.csv")
 st.set_page_config(page_title="EMA Crossover Screener", layout="wide")
 
 # Auto refresh
@@ -13,7 +16,7 @@ st_autorefresh(interval=60000, key="refresh")
 st.title("📈 EMA Crossover Screener")
 
 # Load signals
-df = pd.read_csv("data/signals.csv")
+df = load_signals()
 
 # Sidebar filters
 st.sidebar.header("Filters")
